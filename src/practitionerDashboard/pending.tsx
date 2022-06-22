@@ -23,6 +23,11 @@ import dermPic from '../images/ISIC_0025314.jpg'
 import dermLimePic from '../images/dermLime.png'
 import basederm from '../images/baseDermatofibroma497.png'
 import derm from '../images/Dermatofibromahide_rest_false497.png'
+import { Report } from '../types/report';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+
+
 
 // Generate Order Data
 function createData(id: number, date: string, name: string, reportGenerated: string, manuallyResolved: string, amount: number) {
@@ -33,6 +38,8 @@ function getIcon(id: string){
   if(id === 'n') return <CircleOutlinedIcon fontSize='small'/>
   if(id === 'y') return <CircleRoundedIcon fontSize='small'/>
 }
+
+
 
 const rows = [
   createData(
@@ -77,15 +84,71 @@ function preventDefault(event: any) {
 export default function Pending() {
   const [open, setOpen] = React.useState(false);
   const [scroll, setScroll] = React.useState<DialogProps['scroll']>('paper');
+  const [reports, setReports] = React.useState<Report[]>([])
+  const [report, setReport] = React.useState<Report>()
+
+  const fetchAll = () => {
+    fetch('http://localhost:5000/report/?dataset=ISIC')
+        .then(response => response.json())
+        .then(data => {
+          setReports(data)
+          console.log(data)
+        })
+  }
+
+  React.useEffect(() => {
+    if(reports.length === 0)
+      fetch('http://localhost:5000/report/?dataset=ISIC')
+        .then(response => response.json())
+        .then(data => {
+          setReports(data)
+          console.log(data)
+        })
+  }, []);
+
+  const handleResolve = () => {
+    
+    const requestOptions = {
+      method: 'POST',
+      // headers: { 'Content-Type': 'application/json'},
+      // body: JSON.stringify({
+      //   cust_evaluated: report?.cust_evaluated,
+      //   cust_diagnosis: report?.cust_diagnosis === report?.aut_diagnosis,
+      //   cust_concern: report?.cust_concern,
+      //   cust_inspection: report?.cust_inspection,
+      //   cust_description: report?.cust_description,
+      //   name: report?.user_name,
+      //   request_id: report?.id,
+      //   user_id: 1
+      // })
+    };
+
+    fetch(`http://localhost:5000/report/ISIC?cust_evaluated=${true}&cust_diagnosis=${report?.cust_diagnosis}&cust_concern=${report?.cust_concern}&cust_inspection=${report?.cust_inspection}&name=${report?.user_name}&request_id=${report?.id}&user_id=${report?.user_id}&cust_description=${report?.cust_description}`, requestOptions)
+      .then(response => response.json())
+      .then(data => {
+        console.log(data)
+      })
+    
+    fetchAll()
+    handleClose()
+  }
 
   const handleClickOpen = (scrollType: DialogProps['scroll']) => () => {
+    console.log("fkldsajfkldas")
     setOpen(true);
     setScroll(scrollType);
   };
 
   const handleClose = () => {
     setOpen(false);
+    setReport(undefined)
   };
+
+  React.useEffect(() => {
+    if (report !== undefined){
+      setOpen(true)
+    }
+  }, [report])
 
   const descriptionElementRef = React.useRef<HTMLElement>(null);
   React.useEffect(() => {
@@ -114,15 +177,18 @@ export default function Pending() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          {reports.map((row) => (
             <TableRow key={row.id}>
-              <TableCell>{row.date}</TableCell>
-              <TableCell>{row.name}</TableCell>
+              <TableCell>{`${row.created}`}</TableCell>
+              <TableCell>{row.user_name}</TableCell>
               <TableCell><CircleRoundedIcon fontSize='small'/></TableCell>
-              <TableCell>{getIcon(row.reportGenerated)}</TableCell>
-              <TableCell>{getIcon(row.manuallyResolved)}</TableCell>
+              <TableCell>{row.confidence > row.historic_confidence ? getIcon('y'): getIcon('y')}</TableCell>
+              <TableCell>{getIcon(row.aut_diagnosis !== row.cust_diagnosis ? 'y' : 'n')}</TableCell>
               <TableCell>
-                <Button onClick={handleClickOpen('paper')}>
+                <Button onClick={() => {
+                  handleClickOpen('paper')
+                  setReport(row)
+                }}>
                 <ArrowForwardIosIcon/>
                 </Button>
                 <Dialog
@@ -146,16 +212,18 @@ export default function Pending() {
                           label="Patient name"
                           multiline
                           maxRows={4}
-                          value={"Idris Donald"}
-                          onChange={() => console.log("onChange")}
+                          value={report?.user_name}
+                          disabled={true}
+                          onChange={(e) => console.log()}
                         />
                         <TextField
                           id="outlined-multiline-flexible"
                           label="Age"
                           multiline
                           maxRows={4}
-                          value={"42"}
+                          value={report?.age}
                           style = {{width: 70}}
+                          disabled={true}
                           onChange={() => console.log("onChange")}
                         />
                         <TextField
@@ -163,8 +231,9 @@ export default function Pending() {
                           label="Sex"
                           multiline
                           maxRows={4}
-                          value={"Male"}
-                          style = {{width: 90}}
+                          value={report?.sex}
+                          style = {{width: 100}}
+                          disabled={true}
                           onChange={() => console.log("onChange")}
                         />
                         <TextField
@@ -172,8 +241,9 @@ export default function Pending() {
                           label="Prev. requests"
                           multiline
                           maxRows={4}
-                          value={"3"}
+                          value={reports.filter(x => x.user_name === report?.user_name).length}
                           style = {{width: 130}}
+                          disabled={true}
                           onChange={() => console.log("onChange")}
                         />
                         <Button>History</Button>
@@ -194,7 +264,8 @@ export default function Pending() {
                           label="Patient submitted message"
                           multiline
                           //maxRows={10}
-                          value={"Slightly raised somewhat firm skin growth have developed on my leg. My concern is that it seems similar to several cancerous growths I have found examples of. I noticed it after being on a holiday with lots of sunbathing, but I can not recall if there used to be a birthmark there."}
+                          value={report?.request_text}
+                          disabled={true}
                           // style = {{width: 130}}
                           onChange={() => console.log("onChange")}
                         />
@@ -220,16 +291,16 @@ export default function Pending() {
                           label="Diagnosis"
                           multiline
                           maxRows={4}
-                          value={"Dermatofibroma"}
+                          value={report?.aut_diagnosis}
                           style = {{width: 170}}
-                          onChange={() => console.log("onChange")}
+                          disabled={true}
                         />
                         <TextField
                           id="outlined-multiline-flexible"
                           label="Confidence"
-                          multiline
-                          maxRows={4}
-                          value={"86%"}
+                          
+                          value={report?.confidence}
+                          disabled={true}
                           style = {{width: 130}}
                           onChange={() => console.log("onChange")}
                         />
@@ -238,7 +309,8 @@ export default function Pending() {
                           label="Historic confidence"
                           multiline
                           maxRows={4}
-                          value={"92%"}
+                          value={report?.historic_confidence}
+                          disabled={true}
                           style = {{width: 130}}
                           onChange={() => console.log("onChange")}
                         />
@@ -257,27 +329,40 @@ export default function Pending() {
                             label="Diagnosis"
                             multiline
                             maxRows={4}
-                            value={"Dermatofibroma"}
+                            value={report?.cust_diagnosis}
                             style = {{width: 170}}
-                            onChange={() => console.log("onChange")}
+                            onChange={(e) => {
+                              if (report !== undefined) {
+                                setReport({...report, cust_diagnosis: e.target.value})
+                              }
+                            }}
                           />
                           <TextField
                             id="outlined-multiline-flexible"
                             label="Level of concern"
                             multiline
                             maxRows={4}
-                            value={"Very low"}
+                            value={report?.cust_concern}
                             style = {{width: 150}}
-                            onChange={() => console.log("onChange")}
+                            onChange={(e) => {
+                              if (report !== undefined) {
+                                setReport({...report, cust_concern: e.target.value})
+                              }
+                            }}
                           />
                           <TextField
                             id="outlined-multiline-flexible"
                             label="Need in-office inspection"
                             multiline
                             maxRows={4}
-                            value={"No"}
+                            value={report?.cust_concern === 'high' || report?.cust_concern === 'medium' ? 'yes' : 'no'}
                             style = {{width: 180}}
-                            onChange={() => console.log("onChange")}
+                            disabled = {true}
+                            // onChange={(e) => {
+                            //   if (report !== undefined) {
+                            //     setReport({...report, cust_concern: e.target.value})
+                            //   }
+                            // }}
                           />
                           </Stack>
                           <TextField
@@ -285,18 +370,26 @@ export default function Pending() {
                           label="Description of diagnosis"
                           multiline
                           //maxRows={10}
-                          value={"Dermatofibromas, or histiocytomas, are common noncancerous (benign) skin growths. They are firm to hard, and they are skin-colored or slightly pigmented. Dermatofibromas can be tender. These lesions usually persist for life, and they may heal as depressed scars after several years. Occasionally, dermatofibromas found in large numbers in grouped or linear clusters are seen in association with immune disturbances, such as leukemia, HIV, and lupus."}
+                          value={report?.cust_description}
                           // style = {{width: 130}}
-                          onChange={() => console.log("onChange")}
+                          onChange={(e) => {
+                            if (report !== undefined) {
+                              setReport({...report, cust_description: e.target.value})
+                            }
+                          }}
                         />
                         <TextField
                           id="outlined-multiline-flexible"
                           label="Recommended course of action"
                           multiline
                           //maxRows={10}
-                          value={"Dermatofibromas are noncancerous lesions, but seek medical evaluation if a lesion begins to increase in size, becomes painful, or if large numbers of dermatofibromas in grouped or linear clusters are seen."}
+                          value={report?.cust_course_of_action}
                           // style = {{width: 130}}
-                          onChange={() => console.log("onChange")}
+                          onChange={(e) => {
+                            if (report !== undefined) {
+                              setReport({...report, cust_course_of_action: e.target.value})
+                            }
+                          }}
                         />
                         </Stack>
                     </DialogContentText>
@@ -304,7 +397,7 @@ export default function Pending() {
                   <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
                     <Button onClick={handleClose}>Reject automated diagnosis</Button>
-                    <Button onClick={handleClose}>Resolve</Button>
+                    <Button onClick={handleResolve}>Resolve</Button>
                   </DialogActions>
                 </Dialog>
               </TableCell>

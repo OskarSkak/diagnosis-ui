@@ -185,53 +185,6 @@ function DashboardContent() {
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
-              {/* Chart */}
-              <Grid item xs={12} md={8} lg={8}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 380
-                  }}
-                >
-                  <Stack direction="row">                  
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <StaticDatePicker<Date>
-                    orientation="landscape"
-                    openTo="day"
-                    value={value}
-                  
-                    shouldDisableDate={isWeekend}
-                    onChange={(newValue) => {
-                      setValue(newValue);
-                    }}
-                    renderInput={(params) => <TextField {...params} />}
-                  />
-                </LocalizationProvider>
-                <Divider orientation='vertical'/>
-                <Stack justifyContent={"center"} alignItems={"center"}>
-                <BarChartDerm/>
-                </Stack>
-                {/* <Chart/> */}
-                </Stack>
-                </Paper>
-              </Grid>
-              {/* Recent Deposits */}
-              <Grid item xs={12} md={4} lg={4}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 380,
-                    overflow: 'auto'
-                  }}
-                >
-                  <PendingToday/>
-                </Paper>
-              </Grid>
-              {/* Recent Orders */}
               <Grid item xs={12}>
                 <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
                   <Pending/>
