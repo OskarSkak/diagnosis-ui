@@ -16,7 +16,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Box } from '@mui/system';
+import { Box, Container } from '@mui/system';
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import dermPic from '../images/ISIC_0025314.jpg'
@@ -27,6 +27,7 @@ import FilesDragAndDrop from './FilesDragAndDrop';
 import PhotoSizeSelectActualOutlinedIcon from '@mui/icons-material/PhotoSizeSelectActualOutlined';
 import { GenerateISICReportRequest, Report } from '../types/report';
 import { useFilePicker } from "use-file-picker";
+import above from '../images/above_threshold.jpg'
 
 function getIcon(id: string){
   if(id === 'n') return <CircleOutlinedIcon fontSize='small'/>
@@ -47,16 +48,47 @@ export default function Pending() {
   const [request, setRequest] = React.useState<GenerateISICReportRequest>({age: 42, name: 'patient', patient_message: '', sex: 'male'})
   const [report, setReport] = React.useState<Report>()
 
+  const [fileSelected, setFileSelected] = React.useState<File>()
+
   const [openFileSelector, { filesContent, loading, errors }] = useFilePicker({
     readAs: 'DataURL',
     accept: '.png,.jpg',
   });
 
-  const postRequest = () => {
+  const uploadFile = async function (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) {
+    console.log(fileSelected)
+    if (fileSelected) {
+        const formData = new FormData();
+        formData.append("image", fileSelected, fileSelected.name);
+        const options = {
+          method: 'POST',
+          body: formData,
+          // headers: {
+          //     'Content-Type': 'multipart/form-data',
+          //   }
+        }
+    
+        await fetch(`http://localhost:5000/report/ISIC/generate?name=${request.name}&age=${request.age}&sex=${request.sex}&patient_message=${request.patient_message}`, options)    
+        await fetchAll()
+        setOpenCreate(false)
+      }
+};
+
+  const handleImageChange = function (e: React.ChangeEvent<HTMLInputElement>) {
+    const fileList = e.target.files;
+
+    if (!fileList) return;
+    
+    setFileSelected(fileList[0]);
+  };
+
+  const postRequest = async () => {
     var formData = new FormData()
     var imagefile = filesContent[0].content
-    formData.append("image", imagefile)
-    
+    // formData.append("image", imagefile)
+    let blob = await fetch(imagefile).then(r => r.blob())
+    console.log(filesContent)
+    formData.append("image", blob)
     const options = {
       method: 'POST',
       body: formData,
@@ -66,6 +98,8 @@ export default function Pending() {
     }
 
     fetch(`http://localhost:5000/report/ISIC/generate?name=${request.name}&age=${request.age}&sex=${request.sex}&patient_message=${request.patient_message}`, options)
+    await fetchAll()
+    setOpenCreate(false)
   }
 
   React.useEffect(() => {
@@ -80,8 +114,8 @@ export default function Pending() {
     return false
   }
 
-  const fetchAll = () => {
-    fetch('http://localhost:5000/report/?dataset=ISIC')
+  const fetchAll = async () => {
+    await fetch('http://localhost:5000/report/?dataset=ISIC')
         .then(response => response.json())
         .then(data => {
           setReports(data)
@@ -241,8 +275,8 @@ export default function Pending() {
                           onChange={() => console.log("onChange")}
                         />
                         <h6>Submitted image</h6>
-                          <img src={`http://localhost:5000/image?path=${report?.request_image}`} width="160px" height="160px"/>
-                          
+                          {/* <img src={`http://localhost:5000/image?path=${report?.request_image}`} width="160px" height="160px"/> */}
+                          <img src={above} width="160px" height="160px"/> 
                         </Stack>
 
                         <Divider style={{padding: '10px'}}/>
@@ -393,7 +427,8 @@ export default function Pending() {
                 multiline
                 fullWidth
                 maxRows={4}
-                value={"3"}
+                value={reports.filter(x => x.user_name === report?.user_name).length}
+                disabled={true}
                 style = {{width: 130}}
                 onChange={() => console.log("onChange")}
               />
@@ -425,24 +460,46 @@ export default function Pending() {
                 <Stack justifyContent="center" direction={"row"}>
                   <Stack direction={"column"}>
                     <div>  </div>
-                
-                <Button onClick={() => openFileSelector()}>Drop file or select from file system to upload</Button>
-                {filesContent.map((file, index) => (
+                    
+                {/* <Button onClick={() => openFileSelector()}>Drop file or select from file system to upload</Button> */}
+                <Container >
+                    <label htmlFor="photo">
+                      <input
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        id="photo"
+                        name="photo"
+                        type="file"
+                        multiple={false}
+                        onChange={handleImageChange}
+                      />
+                      <Button
+                    component="span"
+                    variant="text"
+                    // onClick={uploadFile}
+                  >
+                    Drop file or select from file system to upload
+                  </Button>
+
+                    </label>
+                  </Container>
+                {/* {filesContent.map((file, index) => (
                   <div key={index}>
                     <h6>{file.name}</h6>
                     <img alt={file.name} src={file.content} height={'200px'} width={'200px'}></img>
                     <br />
                   </div>
-                ))}
+                ))} */}
                 </Stack>
                 </Stack>
               </Box>
+              
               </Stack>
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCreate(false)}>Cancel</Button>
-          <Button onClick={postRequest}>Create request</Button>
+          <Button onClick={uploadFile}>Create request</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

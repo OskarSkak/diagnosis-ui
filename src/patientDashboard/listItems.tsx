@@ -14,6 +14,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
+import { useUserContext } from '../context/UserContext';
 
 export const mainListItems = (
   <React.Fragment>
@@ -23,42 +24,7 @@ export const mainListItems = (
       </ListItemIcon>
       <ListItemText primary="Dashboard" />
     </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <PendingActionsIcon />
-      </ListItemIcon>
-      <ListItemText primary="Actions Pending" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <PeopleIcon />
-      </ListItemIcon>
-      <ListItemText primary="Patients" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <FolderCopyOutlinedIcon />
-      </ListItemIcon>
-      <ListItemText primary="Reports" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <LayersIcon />
-      </ListItemIcon>
-      <ListItemText primary="Integrations" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-      <InfoOutlinedIcon/>
-      </ListItemIcon>
-      <ListItemText primary="Information"/>
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-      <BarChartIcon/>
-      </ListItemIcon>
-      <ListItemText primary="Diagnostics"/>
-    </ListItemButton>
+    
   </React.Fragment>
 );
 
@@ -79,11 +45,5 @@ export const secondaryListItems = (
       </ListItemIcon>
       <ListItemText primary="General" />
     </ListItemButton>
-    {/* <ListItemButton>
-      <ListItemIcon>
-        <AssignmentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Year-end sale" />
-    </ListItemButton> */}
   </React.Fragment>
 );

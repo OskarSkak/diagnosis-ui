@@ -263,11 +263,11 @@ export default function Pending() {
                         <Stack direction={"row"} spacing={4}>
                           <div>
                         <h6>Patient submitted image</h6>
-                        <img src={basederm} width="120px" height="120px"/>
+                        <img src={basederm} width="250px" height="250px"/>
                         </div>
                         <div>
                           <h6>Most important features in automated diagnosis</h6>
-                          <img src={derm} width="120px" height="120px"/>
+                          <img src={derm} width="250px" height="250px"/>
                         </div>
                         </Stack>
                         <Divider style={{padding: '3px'}}/>

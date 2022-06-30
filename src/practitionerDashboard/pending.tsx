@@ -272,11 +272,11 @@ export default function Pending() {
                         <Stack direction={"row"} spacing={4}>
                           <div>
                         <h6>Patient submitted image</h6>
-                        <img src={basederm} width="120px" height="120px"/>
+                        <img src={basederm} width="220px" height="220px"/>
                         </div>
                         <div>
                           <h6>Segmented deciding features</h6>
-                          <img src={derm} width="120px" height="120px"/>
+                          <img src={derm} width="220px" height="220px"/>
                         </div>
                         </Stack>
                         <Divider style={{padding: '3px'}}/>
